@@ -1,9 +1,9 @@
 import os
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
-DEFAULT_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4')
+DEFAULT_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
 MERMAID_PROMPT = '''
 You are an assistant that converts a structured list of code steps into a Mermaid flowchart.
@@ -16,29 +16,17 @@ Now produce a Mermaid diagram for these steps:
 '''
 
 def steps_to_mermaid(steps: list) -> str:
-    bullet_lines = []
-    for s in steps:
-        tag = ''
-        if s.get('type') == 'decision':
-            tag = ' (decision)'
-        elif s.get('type') == 'io':
-            tag = ' (io)'
-        bullet_lines.append(f"- {s['label']}{tag}")
-    bullet_text = '\n'.join(bullet_lines)
+    bullet_text = "\n".join([f"- {s['label']}" for s in steps])
 
-    llm = ChatOpenAI(model_name=DEFAULT_MODEL, temperature=0)
-    prompt = PromptTemplate(input_variables=['steps'], template=MERMAID_PROMPT)
+    llm = ChatOpenAI(
+        model=DEFAULT_MODEL,
+        temperature=0,
+        api_key=os.environ.get("OPENAI_API_KEY")
+    )
+
+    prompt = PromptTemplate(input_variables=["steps"], template=MERMAID_PROMPT)
     chain = LLMChain(llm=llm, prompt=prompt)
+
     result = chain.run(steps=bullet_text)
 
-    if '```' in result:
-        parts = result.split('```')
-        # pick the largest fenced block if present
-        blocks = [p for p in parts if p.strip().startswith('mermaid') or 'graph' in p]
-        if blocks:
-            result = blocks[-1]
-        else:
-            result = parts[-1]
-    if result.strip().startswith('mermaid'):
-        result = result.split('\n', 1)[1] if '\n' in result else ''
     return result
