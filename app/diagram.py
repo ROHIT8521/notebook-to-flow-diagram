@@ -24,9 +24,21 @@ def steps_to_mermaid(steps: list) -> str:
         api_key=os.environ.get("OPENAI_API_KEY")
     )
 
-    prompt = PromptTemplate(input_variables=["steps"], template=MERMAID_PROMPT)
-    chain = LLMChain(llm=llm, prompt=prompt)
+    prompt = PromptTemplate(
+        input_variables=["steps"],
+        template=MERMAID_PROMPT
+    )
 
+    chain = LLMChain(llm=llm, prompt=prompt)
     result = chain.run(steps=bullet_text)
+
+    # CLEAN OUTPUT
+    result = result.strip()
+
+    # Remove markdown fences if present
+    if result.startswith("```"):
+        result = result.split("```")[1]
+
+    result = result.replace("mermaid", "").strip()
 
     return result
