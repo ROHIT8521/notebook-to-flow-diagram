@@ -1,9 +1,7 @@
-import os
-import streamlit as st
-from app.parser import extract_cells
-from app.analyzer import extract_steps_from_cells
-from app.diagram import steps_to_mermaid
-from app.renderer import mermaid_to_image_url
+from parser import extract_cells
+from analyzer import extract_steps_from_cells
+from diagram import steps_to_mermaid
+from renderer import mermaid_to_image_url
 
 st.set_page_config(page_title='Notebook → Flow Diagram', layout='wide')
 
